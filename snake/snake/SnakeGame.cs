@@ -50,8 +50,8 @@ namespace snake {
         VertexBuffer snakeVertexBuffer;
         IndexBuffer snakeIndexBuffer;
         int[] snakeIndices;
-        bool ignoreCollisions;
-        const bool defaultIgnoreCollisions = false;
+        bool ignoreSnakeCollisions;
+        const bool defaultIgnoreSnakeCollisions = false;
 
         // 3D world and camera
         Matrix worldMatrix;
@@ -77,6 +77,9 @@ namespace snake {
         VertexBuffer arenaVertexBuffer;
         IndexBuffer arenaIndexBuffer;
         int[] arenaIndices = { 0, 1, 1, 2, 2, 3, 3, 0 };
+        enum ArenaBoundaryType { WrapAround, Collision, NoBoundary };
+        const ArenaBoundaryType defaultArenaBoundaryType = ArenaBoundaryType.WrapAround;
+        ArenaBoundaryType arenaBoundaryType = defaultArenaBoundaryType;
         
         // Goal data
         Vector2 goalPosition;
@@ -332,7 +335,8 @@ namespace snake {
             fieldOfViewAngle = defaultFieldOfViewAngle;
             show2DSnake = defaultShow2DSnake;
             showOverlay = defaultShowOverlay;
-            ignoreCollisions = defaultIgnoreCollisions;
+            ignoreSnakeCollisions = defaultIgnoreSnakeCollisions;
+            arenaBoundaryType = defaultArenaBoundaryType;
             SetCameraType(defaultCameraType);
             Update3DSnakeData();
             RepositionGoal();
@@ -451,6 +455,15 @@ namespace snake {
             if (IsKeyReleased(Keys.C, state)) {
                 ToggleIgnoreCollisions();
             }
+            if (IsKeyReleased(Keys.B, state)) {
+                if (arenaBoundaryType == ArenaBoundaryType.WrapAround) {
+                    arenaBoundaryType = ArenaBoundaryType.Collision;
+                } else if (arenaBoundaryType == ArenaBoundaryType.Collision) {
+                    arenaBoundaryType = ArenaBoundaryType.NoBoundary;
+                } else {
+                    arenaBoundaryType = ArenaBoundaryType.WrapAround;
+                }
+            }
             if (state.IsKeyDown(Keys.Q) || state.IsKeyDown(Keys.Escape)) {
                 Exit();
             }
@@ -478,6 +491,27 @@ namespace snake {
                     case SnakeDirection.Right:
                         snakePosition.X += displacement;
                         break;
+                }
+
+                bool hit = false;
+
+                // Check if snake went out of bounds
+                if (arenaBoundaryType == ArenaBoundaryType.Collision) {
+                    if (snakePosition.X < 0 ||
+                            snakePosition.X > graphics.GraphicsDevice.Viewport.Width - 1 ||
+                            snakePosition.Y < 0 ||
+                            snakePosition.Y > graphics.GraphicsDevice.Viewport.Height - 1) {
+                        hit = true;
+                    }
+                } else if (arenaBoundaryType == ArenaBoundaryType.WrapAround) {
+                    /*
+                    if (snakePosition.X < 0) {
+                        oldSnakePosition = new Vector2(graphics.GraphicsDevice.Viewport.Width, snakePosition.Y);
+                        snakePositions.Add(new Vector2(0, snakePosition.Y));
+                        snakePositions.Add(oldSnakePosition);
+                        snakePosition = new Vector2(graphics.GraphicsDevice.Viewport.Width + snakePosition.X, snakePosition.Y);
+                    }
+                    */
                 }
 
                 // Trim the snake tail, making sure the length of the snake is correct.
@@ -508,7 +542,6 @@ namespace snake {
 
                 // Check if snake intersected with itself
                 LineSegment2 recentMovement = new LineSegment2(oldSnakePosition, snakePosition);
-                bool hit = false;
                 if (snakePositions.Count > 1) {
                     lastPosition = snakePositions[snakePositions.Count - 2];
                     i = snakePositions.Count - 3;
@@ -521,7 +554,7 @@ namespace snake {
                         lastPosition = position;
                     }
                 }
-                if (hit && !ignoreCollisions) {
+                if (hit && !ignoreSnakeCollisions) {
                     ResetGame();
                 } else {
                     // Check if snake reached a goal
@@ -550,7 +583,7 @@ namespace snake {
         }
 
         private void ToggleIgnoreCollisions() {
-            ignoreCollisions = !ignoreCollisions;
+            ignoreSnakeCollisions = !ignoreSnakeCollisions;
         }
 
         private void TogglePaused() {
@@ -642,11 +675,12 @@ namespace snake {
                 string output = "";
                 output += CreateToggleStatement("Show Info", "I", showOverlay) + "\n";
                 output += CreateToggleStatement("Show 2D Snake", "T", show2DSnake) + "\n";
-                output += CreateToggleStatement("Ignore Collisions", "C", ignoreCollisions) + "\n";
+                output += CreateToggleStatement("Ignore Snake Collisions", "C", ignoreSnakeCollisions) + "\n";
                 output += CreateToggleStatement("Paused", "<SPACE>", paused) + "\n";
+                output += "Arena Boundary Type(\"B\"):" + arenaBoundaryType + "\n";
                 output += "Snake Speed(\"+\"/\"-\"):" + snakeSpeed + "px/sec\n";
                 output += "Grow Snake (\"G\")\n";
-                output += "View Type(\"V\"):" + (cameraType == CameraType.FromAbove ? "FromAbove" : "Angled") + "\n";
+                output += "View Type(\"V\"):" + cameraType + "\n";
                 output += "Camera Pitch(\"W\"/\"S\"):" + cameraPitch + "deg\n";
                 output += "Camera Distance(\"A\"/\"D\"):" + (int)cameraDistance + "\n";
                 output += "Snake Length(\"[\"/\"]\"):" + snakeLength + "\n";
