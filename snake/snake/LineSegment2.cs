@@ -4,124 +4,93 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 
-namespace snake
-{
+namespace snake {
     /// <summary>
     /// A line segment class.
     /// </summary>
-    class LineSegment2
-    {
+    class LineSegment2 {
         public Vector2 point1;
         public Vector2 point2;
 
         /// <summary>
         /// Types of segments.
         /// </summary>
-        public enum SegmentType {Vertical, Horizontal, Point, Tilted};
+        public enum SegmentType { Vertical, Horizontal, Point, Tilted };
 
         /// <summary>
         /// Types of segment pairs.
         /// </summary>
-        private enum SegmentRelationship
-        {
+        private enum SegmentRelationship {
             Verticals, Horizontals, Points, VerticalHorizontal,
             VerticalTilted, HorizontalTilted, VerticalPoint, HorizontalPoint, TiltedPoint, Tilted
         };
 
-        public LineSegment2(Vector2 p1, Vector2 p2)
-        {
+        public LineSegment2(Vector2 p1, Vector2 p2) {
             point1 = p1;
             point2 = p2;
         }
 
-        public float LowestX()
-        {
+        public float LowestX() {
             return PointWithLowestX().X;
         }
 
-        public float LowestY()
-        {
+        public float LowestY() {
             return PointWithLowestY().Y;
         }
 
-        public float GreatestX()
-        {
+        public float GreatestX() {
             return PointWithGreatestX().X;
         }
 
-        public float GreatestY()
-        {
+        public float GreatestY() {
             return PointWithGreatestY().Y;
         }
 
-        public Vector2 PointWithGreatestX()
-        {
-            if (point1.X > point2.X)
-            {
+        public Vector2 PointWithGreatestX() {
+            if (point1.X > point2.X) {
                 return point1;
-            }
-            else
-            {
+            } else {
                 return point2;
             }
         }
 
-        public Vector2 PointWithLowestX()
-        {
-            if (point2.X < point1.X)
-            {
+        public Vector2 PointWithLowestX() {
+            if (point2.X < point1.X) {
                 return point2;
-            }
-            else
-            {
+            } else {
                 return point1;
             }
         }
 
-        public Vector2 PointWithGreatestY()
-        {
-            if (point2.Y > point1.Y)
-            {
+        public Vector2 PointWithGreatestY() {
+            if (point2.Y > point1.Y) {
                 return point2;
-            }
-            else
-            {
+            } else {
                 return point1;
             }
         }
 
-        public Vector2 PointWithLowestY()
-        {
-            if (point1.Y < point2.Y)
-            {
+        public Vector2 PointWithLowestY() {
+            if (point1.Y < point2.Y) {
                 return point1;
             }
-            else
-            {
+            else {
                 return point2;
             }
         }
 
-        public SegmentType Type()
-        {
+        public SegmentType Type() {
             SegmentType type;
             float changeInX = point2.X - point1.X;
             float changeInY = point2.Y - point1.Y;
 
-            if (changeInX == 0 && changeInY == 0)
-            {
+            if (changeInX == 0 && changeInY == 0) {
                 type = SegmentType.Point;
-            }
-            else if (changeInX == 0)
-            {
+            } else if (changeInX == 0) {
                 type = SegmentType.Vertical;
-            }
-            else if (changeInY == 0)
-            {
+            } else if (changeInY == 0) {
                 type = SegmentType.Horizontal;
-            }
-            else
-            {
+            } else {
                 type = SegmentType.Tilted;
             }
             return type;
@@ -134,11 +103,10 @@ namespace snake
         /// <param name="segment1"></param>
         /// <param name="segment2"></param>
         /// <returns></returns>
-        public static bool SegmentsIntersect(LineSegment2 segment1, LineSegment2 segment2)
-        {
+        public static bool SegmentsIntersect(LineSegment2 segment1, LineSegment2 segment2) {
             bool doIntersect = false;
 
-            LineSegment2[] segments = {segment1, segment2};
+            LineSegment2[] segments = { segment1, segment2 };
 
             float[] changeInX = new float[2];
             float[] changeInY = new float[2];
@@ -151,194 +119,137 @@ namespace snake
 
             Vector2 intersectPoint;
 
-            for (int i = 0; i < 2; ++i)
-            {
+            for (int i = 0; i < 2; ++i) {
                 changeInX[i] = segments[i].point2.X - segments[i].point1.X;
                 changeInY[i] = segments[i].point2.Y - segments[i].point1.Y;
 
-                if (changeInX[i] == 0 && changeInY[i] == 0)
-                {
+                if (changeInX[i] == 0 && changeInY[i] == 0) {
                     pointSegmentIndices.Add(i);
-                }
-                else if (changeInX[i] == 0)
-                {
+                } else if (changeInX[i] == 0) {
                     verticalSegmentIndices.Add(i);
-                }
-                else if (changeInY[i] == 0)
-                {
+                } else if (changeInY[i] == 0) {
                     horizontalSegmentIndices.Add(i);
-                }
-                else
-                {
+                } else {
                     tiltedSegmentIndices.Add(i);
                 }
             }
 
-            if (pointSegmentIndices.Count >= 1)
-            {
-                if (pointSegmentIndices.Count == 2)
-                {
+            if (pointSegmentIndices.Count >= 1) {
+                if (pointSegmentIndices.Count == 2) {
                     segmentRelationship = SegmentRelationship.Points;
-                }
-                else if (verticalSegmentIndices.Count == 1)
-                {
+                } else if (verticalSegmentIndices.Count == 1) {
                     segmentRelationship = SegmentRelationship.VerticalPoint;
-                }
-                else if (horizontalSegmentIndices.Count == 1)
-                {
+                } else if (horizontalSegmentIndices.Count == 1) {
                     segmentRelationship = SegmentRelationship.HorizontalPoint;
-                }
-                else
-                {
+                } else {
                     segmentRelationship = SegmentRelationship.TiltedPoint;
                 }
-            }
-            else if (verticalSegmentIndices.Count >= 1)
-            {
-                if (verticalSegmentIndices.Count == 2)
-                {
+            } else if (verticalSegmentIndices.Count >= 1) {
+                if (verticalSegmentIndices.Count == 2) {
                     segmentRelationship = SegmentRelationship.Verticals;
-                }
-                else if (horizontalSegmentIndices.Count == 1)
-                {
+                } else if (horizontalSegmentIndices.Count == 1) {
                     segmentRelationship = SegmentRelationship.VerticalHorizontal;
-                }
-                else
-                {
+                } else {
                     segmentRelationship = SegmentRelationship.VerticalTilted;
                 }
-            }
-            else if (horizontalSegmentIndices.Count >= 1)
-            {
-                if (horizontalSegmentIndices.Count == 2)
-                {
+            } else if (horizontalSegmentIndices.Count >= 1) {
+                if (horizontalSegmentIndices.Count == 2) {
                     segmentRelationship = SegmentRelationship.Horizontals;
-                }
-                else
-                {
+                } else {
                     segmentRelationship = SegmentRelationship.HorizontalTilted;
                 }
-            }
-            else
-            {
+            } else {
                 segmentRelationship = SegmentRelationship.Tilted;
             }
 
 
-            if (segmentRelationship == SegmentRelationship.Points)
-            {
+            if (segmentRelationship == SegmentRelationship.Points) {
                 // check that the points are identical
                 if (segment1.point1.X == segment2.point1.X &&
-                        segment1.point1.Y == segment2.point1.Y)
-                {
+                        segment1.point1.Y == segment2.point1.Y) {
                     doIntersect = true;
                     intersectPoint = segment1.point1;
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.Verticals || segmentRelationship == SegmentRelationship.Horizontals)
-            {
+            } else if (segmentRelationship == SegmentRelationship.Verticals || segmentRelationship == SegmentRelationship.Horizontals) {
                 // no intersection
-            }
-            else if (segmentRelationship == SegmentRelationship.VerticalHorizontal)
-            {
+            } else if (segmentRelationship == SegmentRelationship.VerticalHorizontal) {
                 LineSegment2 vertical = segments[verticalSegmentIndices[0]];
                 LineSegment2 horizontal = segments[horizontalSegmentIndices[0]];
 
                 if (vertical.point1.X >= horizontal.LowestX() && vertical.point1.X <= horizontal.GreatestX() &&
-                        horizontal.point1.Y >= vertical.LowestY() && horizontal.point1.Y <= vertical.GreatestY())
-                {
+                        horizontal.point1.Y >= vertical.LowestY() && horizontal.point1.Y <= vertical.GreatestY()) {
                     doIntersect = true;
                     intersectPoint = new Vector2(vertical.point1.X, horizontal.point1.Y);
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.VerticalPoint)
-            {
+            } else if (segmentRelationship == SegmentRelationship.VerticalPoint) {
                 // check if point is in line segment
                 LineSegment2 vertical = segments[verticalSegmentIndices[0]];
                 LineSegment2 point = segments[pointSegmentIndices[0]];
 
                 if (point.point1.X == vertical.point1.X &&
-                        point.point1.Y >= vertical.LowestY() && point.point1.Y <= vertical.GreatestY())
-                {
+                        point.point1.Y >= vertical.LowestY() && point.point1.Y <= vertical.GreatestY()) {
                     doIntersect = true;
                     intersectPoint = new Vector2(vertical.point1.X, point.point1.Y);
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.HorizontalPoint)
-            {
+            } else if (segmentRelationship == SegmentRelationship.HorizontalPoint) {
                 // check if point is in line segment
                 LineSegment2 horizontal = segments[horizontalSegmentIndices[0]];
                 LineSegment2 point = segments[pointSegmentIndices[0]];
 
                 if (point.point1.Y == horizontal.point1.Y &&
-                        point.point1.X >= horizontal.LowestX() && point.point1.X <= horizontal.GreatestX())
-                {
+                        point.point1.X >= horizontal.LowestX() && point.point1.X <= horizontal.GreatestX()) {
                     doIntersect = true;
                     intersectPoint = new Vector2(point.point1.X, horizontal.point1.Y);
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.VerticalTilted)
-            {
+            } else if (segmentRelationship == SegmentRelationship.VerticalTilted) {
                 LineSegment2 vertical = segments[verticalSegmentIndices[0]];
                 LineSegment2 tilted = segments[tiltedSegmentIndices[0]];
 
                 // Check if they intersect horizontally
-                if (vertical.point1.X >= tilted.LowestX() && vertical.point1.X <= tilted.GreatestX())
-                {
+                if (vertical.point1.X >= tilted.LowestX() && vertical.point1.X <= tilted.GreatestX()) {
                     // get y value at x = vertical.point1.X
                     float y = YAtXEqualsNInLine(tilted, vertical.point1.X);
 
                     // Check if they intersect vertically
-                    if (y >= vertical.LowestY() && y <= vertical.GreatestY())
-                    {
+                    if (y >= vertical.LowestY() && y <= vertical.GreatestY()) {
                         doIntersect = true;
                         intersectPoint = new Vector2(vertical.point1.X, y);
                     }
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.HorizontalTilted)
-            {
+            } else if (segmentRelationship == SegmentRelationship.HorizontalTilted) {
                 LineSegment2 horizontal = segments[horizontalSegmentIndices[0]];
                 LineSegment2 tilted = segments[tiltedSegmentIndices[0]];
 
                 // Check if they intersect vertically
-                if (horizontal.point1.Y >= tilted.LowestY() && horizontal.point1.Y <= tilted.GreatestY())
-                {
+                if (horizontal.point1.Y >= tilted.LowestY() && horizontal.point1.Y <= tilted.GreatestY()) {
                     // get x value at y = horizontal.point1.Y
                     float x = XAtYEqualsNInLine(tilted, horizontal.point1.Y);
 
                     // Check if they intersect horizontally
-                    if (x >= horizontal.LowestX() && x <= horizontal.GreatestX())
-                    {
+                    if (x >= horizontal.LowestX() && x <= horizontal.GreatestX()) {
                         doIntersect = true;
                         intersectPoint = new Vector2(x, horizontal.point1.Y);
                     }
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.TiltedPoint)
-            {
+            } else if (segmentRelationship == SegmentRelationship.TiltedPoint) {
                 LineSegment2 point = segments[pointSegmentIndices[0]];
                 LineSegment2 tilted = segments[tiltedSegmentIndices[0]];
 
                 // get y value at x = point.point1.X
                 float y = YAtXEqualsNInLine(tilted, point.point1.X);
 
-                if (y == point.point1.Y)
-                {
+                if (y == point.point1.Y) {
                     doIntersect = true;
                     intersectPoint = point.point1;
                 }
-            }
-            else if (segmentRelationship == SegmentRelationship.Tilted)
-            {
+            } else if (segmentRelationship == SegmentRelationship.Tilted) {
                 LineSegment2 line1 = segments[tiltedSegmentIndices[0]];
                 LineSegment2 line2 = segments[tiltedSegmentIndices[1]];
 
                 // get y value where both lines have the same x
                 float y = Line1YWhereXTheSameInBothLines(line1, line2);
 
-                if (y >= line1.LowestY() && y <= line1.GreatestY())
-                {
+                if (y >= line1.LowestY() && y <= line1.GreatestY()) {
                     doIntersect = true;
                     intersectPoint = new Vector2(XAtYEqualsNInLine(line1, y), y);
                 }
@@ -354,8 +265,7 @@ namespace snake
         /// <param name="line">Two points that define the line</param>
         /// <param name="n">The value of x</param>
         /// <returns></returns>
-        public static float YAtXEqualsNInLine(LineSegment2 line, float n)
-        {
+        public static float YAtXEqualsNInLine(LineSegment2 line, float n) {
             return ((line.point2.Y - line.point1.Y) / (line.point2.X - line.point1.X)) * (n - line.point1.X) + line.point1.Y;
         }
 
@@ -366,8 +276,7 @@ namespace snake
         /// <param name="line">Two points that define the line</param>
         /// <param name="n">The value of y</param>
         /// <returns></returns>
-        public static float XAtYEqualsNInLine(LineSegment2 line, float n)
-        {
+        public static float XAtYEqualsNInLine(LineSegment2 line, float n) {
             return ((line.point2.X - line.point1.X) / (line.point2.Y - line.point1.Y)) * (n - line.point1.Y) + line.point1.X;
         }
 
@@ -378,8 +287,7 @@ namespace snake
         /// <param name="line1">Two points that define the first line</param>
         /// <param name="line2">Two points that define the second line</param>
         /// <returns>The y value of line1 where x in line1 = x in line2</returns>
-        public static float Line1YWhereXTheSameInBothLines(LineSegment2 line1, LineSegment2 line2)
-        {
+        public static float Line1YWhereXTheSameInBothLines(LineSegment2 line1, LineSegment2 line2) {
             float j = (line1.point2.Y - line1.point2.Y) / (line1.point2.X - line1.point1.X);
             float k = (line2.point2.X - line2.point1.X) / (line2.point2.Y - line2.point1.Y);
             float l = line2.point1.X;

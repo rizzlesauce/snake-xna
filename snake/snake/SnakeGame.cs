@@ -9,13 +9,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
-namespace snake
-{
+namespace snake {
     /// <summary>
     /// This is the main type for your game
     /// </summary>
-    public class SnakeGame : Microsoft.Xna.Framework.Game
-    {
+    public class SnakeGame : Microsoft.Xna.Framework.Game {
         GraphicsDeviceManager graphics;
 
         // 2D graphics
@@ -78,8 +76,7 @@ namespace snake
         IndexBuffer goalIndexBuffer;
         int[] goalIndices = { 0, 1, 1, 2, 2, 3, 3, 0 };
 
-        public SnakeGame()
-        {
+        public SnakeGame() {
             graphics = new GraphicsDeviceManager(this);
             graphics.IsFullScreen = true;
             blockSize = new Vector2(6, 6);
@@ -97,8 +94,7 @@ namespace snake
         /// related content.  Calling base.Initialize will enumerate through any components
         /// and initialize them as well.
         /// </summary>
-        protected override void Initialize()
-        {
+        protected override void Initialize() {
             // Initialize view
             basicEffect = new BasicEffect(graphics.GraphicsDevice);
 
@@ -128,11 +124,9 @@ namespace snake
             basicEffect.Alpha = 1.0f;
 
             basicEffect.LightingEnabled = true;
-            if (basicEffect.LightingEnabled)
-            {
+            if (basicEffect.LightingEnabled) {
                 basicEffect.DirectionalLight0.Enabled = true;
-                if (basicEffect.DirectionalLight0.Enabled)
-                {
+                if (basicEffect.DirectionalLight0.Enabled) {
                     // x direction
                     basicEffect.DirectionalLight0.DiffuseColor = new Vector3(1, 0, 0); // range is 0 to 1
                     basicEffect.DirectionalLight0.Direction = Vector3.Normalize(new Vector3(-1, 0, 0));
@@ -140,8 +134,7 @@ namespace snake
                 }
 
                 basicEffect.DirectionalLight1.Enabled = true;
-                if (basicEffect.DirectionalLight1.Enabled)
-                {
+                if (basicEffect.DirectionalLight1.Enabled) {
                     // y direction
                     basicEffect.DirectionalLight1.DiffuseColor = new Vector3(0, 0.75f, 0);
                     basicEffect.DirectionalLight1.Direction = Vector3.Normalize(new Vector3(0, -1, 0));
@@ -149,8 +142,7 @@ namespace snake
                 }
 
                 basicEffect.DirectionalLight2.Enabled = true;
-                if (basicEffect.DirectionalLight2.Enabled)
-                {
+                if (basicEffect.DirectionalLight2.Enabled) {
                     // z direction
                     basicEffect.DirectionalLight2.DiffuseColor = new Vector3(0, 0, 0.5f);
                     basicEffect.DirectionalLight2.Direction = Vector3.Normalize(new Vector3(0, 0, -1));
@@ -161,21 +153,17 @@ namespace snake
             base.Initialize();
         }
 
-        private void UpdateViewMatrix(CameraType type)
-        {
+        private void UpdateViewMatrix(CameraType type) {
             cameraType = type;
             // Set the camera height so that viewport pixel units will look the same as 3D world units
             float cameraHeight = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f));
 
-            if (type == CameraType.FromAbove)
-            {
+            if (type == CameraType.FromAbove) {
                 // Create a camera position centered above the floor looking down
                 cameraPosition = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, cameraHeight, graphics.GraphicsDevice.Viewport.Height / 2.0f);
                 cameraTarget = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, 0, graphics.GraphicsDevice.Viewport.Height / 2.0f);
                 cameraUpVector = new Vector3(0, 0, -1);
-            }
-            else
-            {
+            } else {
                 // Create a camera positioned above and in front of the floor, looking at the center of the floor
                 cameraPosition = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, cameraHeight / 2.0f, graphics.GraphicsDevice.Viewport.Height + (cameraHeight / 1.0f));
                 cameraTarget = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, 0, graphics.GraphicsDevice.Viewport.Height / 2.0f);
@@ -190,8 +178,7 @@ namespace snake
         /// </summary>
         /// <param name="meters"></param>
         /// <returns></returns>
-        private float MeterToWorldUnit(float meters)
-        {
+        private float MeterToWorldUnit(float meters) {
             return meters * 1000.0f;
         }
 
@@ -200,8 +187,7 @@ namespace snake
         /// </summary>
         /// <param name="units"></param>
         /// <returns></returns>
-        private float WorldUnitToMeter(float worldUnits)
-        {
+        private float WorldUnitToMeter(float worldUnits) {
             return worldUnits / 1000.0f;
         }
 
@@ -209,8 +195,7 @@ namespace snake
         /// LoadContent will be called once per game and is the place to load
         /// all of your content.
         /// </summary>
-        protected override void LoadContent()
-        {
+        protected override void LoadContent() {
             // Set up the arena
             arenaVertices = new VertexPositionNormalTexture[4];
             arenaVertices[0] = new VertexPositionNormalTexture(new Vector3(0, 0, graphics.GraphicsDevice.Viewport.Height),
@@ -248,8 +233,7 @@ namespace snake
         /// <summary>
         /// Reposition the goal to a random location.
         /// </summary>
-        protected void RepositionGoal()
-        {
+        protected void RepositionGoal() {
             // TODO: make sure it gets repositioned somewhere the snake is not at
             Random rand = new Random(System.DateTime.Now.Millisecond);
 
@@ -269,19 +253,19 @@ namespace snake
             // Update 3D data
             goalVertices = new VertexPositionNormalTexture[4];
             goalVertices[0] = new VertexPositionNormalTexture(Snake2DTo3DVector(goalUpperLeft),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             goalVertices[1] = new VertexPositionNormalTexture(Snake2DTo3DVector(goalUpperRight),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             goalVertices[2] = new VertexPositionNormalTexture(Snake2DTo3DVector(goalLowerRight),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             goalVertices[3] = new VertexPositionNormalTexture(Snake2DTo3DVector(goalLowerLeft),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             goalVertexBuffer = new VertexBuffer(graphics.GraphicsDevice, typeof(VertexPositionNormalTexture),
-                goalVertices.Length, BufferUsage.None);
+                    goalVertices.Length, BufferUsage.None);
             goalVertexBuffer.SetData<VertexPositionNormalTexture>(goalVertices);
             goalIndexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(int), goalIndices.Length, BufferUsage.None);
             goalIndexBuffer.SetData<int>(goalIndices);
@@ -291,16 +275,14 @@ namespace snake
         /// UnloadContent will be called once per game and is the place to unload
         /// all content.
         /// </summary>
-        protected override void UnloadContent()
-        {
+        protected override void UnloadContent() {
             // TODO: Unload any non ContentManager content here
         }
 
         /// <summary>
         /// Put the game back to its first state.
         /// </summary>
-        private void ResetGame()
-        {
+        private void ResetGame() {
             snakePosition = new Vector2(200, 200);
             snakePositions.Clear();
             snakePositions.Add(new Vector2(snakePosition.X - snakeLength, snakePosition.Y));
@@ -319,100 +301,78 @@ namespace snake
         /// checking for collisions, gathering input, and playing audio.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Update(GameTime gameTime)
-        {
+        protected override void Update(GameTime gameTime) {
             // Allows the game to exit
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed) {
                 this.Exit();
+            }
 
             SnakeDirection oldDirection = snakeDirection;
             Vector2 oldSnakePosition = snakePosition;
 
             // Get keyboard input
             KeyboardState state = Keyboard.GetState();
-            if (state.IsKeyDown(Keys.Left))
-            {
-                if (snakeDirection != SnakeDirection.Right)
-                {
+            if (state.IsKeyDown(Keys.Left)) {
+                if (snakeDirection != SnakeDirection.Right) {
                     snakeDirection = SnakeDirection.Left;
                 }
             }
-            if (state.IsKeyDown(Keys.Right))
-            {
-                if (snakeDirection != SnakeDirection.Left)
-                {
+            if (state.IsKeyDown(Keys.Right)) {
+                if (snakeDirection != SnakeDirection.Left) {
                     snakeDirection = SnakeDirection.Right;
                 }
             }
-            if (state.IsKeyDown(Keys.Up))
-            {
-                if (snakeDirection != SnakeDirection.Down)
-                {
+            if (state.IsKeyDown(Keys.Up)) {
+                if (snakeDirection != SnakeDirection.Down) {
                     snakeDirection = SnakeDirection.Up;
                 }
             }
-            if (state.IsKeyDown(Keys.Down))
-            {
-                if (snakeDirection != SnakeDirection.Up)
-                {
+            if (state.IsKeyDown(Keys.Down)) {
+                if (snakeDirection != SnakeDirection.Up) {
                     snakeDirection = SnakeDirection.Down;
                 }
             }
-            if (state.IsKeyDown(Keys.G))
-            {
+            if (state.IsKeyDown(Keys.G)) {
                 GrowSnake();
             }
-            if (state.IsKeyDown(Keys.OemPlus))
-            {
+            if (state.IsKeyDown(Keys.OemPlus)) {
                 snakeSpeed += 5;
             }
-            if (state.IsKeyDown(Keys.OemMinus))
-            {
+            if (state.IsKeyDown(Keys.OemMinus)) {
                 snakeSpeed -= 5;
-                if (snakeSpeed < 0)
-                {
+                if (snakeSpeed < 0) {
                     snakeSpeed = 0;
                 }
             }
-            if (state.IsKeyDown(Keys.OemOpenBrackets))
-            {
+            if (state.IsKeyDown(Keys.OemOpenBrackets)) {
                 snakeLength += 1.0f;
             }
-            if (state.IsKeyDown(Keys.OemCloseBrackets))
-            {
+            if (state.IsKeyDown(Keys.OemCloseBrackets)) {
                 snakeLength -= 1.0f;
-                if (snakeLength < initialSnakeLength)
-                {
+                if (snakeLength < initialSnakeLength) {
                     snakeLength = initialSnakeLength;
                 }
             }
-            if (state.IsKeyDown(Keys.V))
-            {
-                if (cameraType == CameraType.FromAbove)
-                {
+            if (state.IsKeyDown(Keys.V)) {
+                if (cameraType == CameraType.FromAbove) {
                     UpdateViewMatrix(CameraType.Angled);
-                }
-                else
-                {
+                } else {
                     UpdateViewMatrix(CameraType.FromAbove);
                 }
             }
-            if (state.IsKeyDown(Keys.Q) || state.IsKeyDown(Keys.Escape))
-            {
+            if (state.IsKeyDown(Keys.Q) || state.IsKeyDown(Keys.Escape)) {
                 Exit();
             }
 
             // Check if snake switched direction
-            if (snakeDirection != oldDirection)
-            {
+            if (snakeDirection != oldDirection) {
                 // Add position to list of joints
                 snakePositions.Add(new Vector2(oldSnakePosition.X, oldSnakePosition.Y));
             }
 
             // Move the snake
             float displacement = (float)gameTime.ElapsedGameTime.TotalSeconds * snakeSpeed;
-            switch (snakeDirection)
-            {
+            switch (snakeDirection) {
                 case SnakeDirection.Up:
                     snakePosition.Y -= displacement;
                     break;
@@ -434,16 +394,14 @@ namespace snake
             Vector2 lastPosition = snakePosition;
             int i = snakePositions.Count - 1;
             Vector2 vector = new Vector2();
-            for (; i >= 0 && length <= snakeLength; --i)
-            {
+            for (; i >= 0 && length <= snakeLength; --i) {
                 Vector2 position = snakePositions[i];
                 vector = lastPosition - position;
                 length += vector.Length();
 
                 lastPosition = position;
             }
-            if (length > snakeLength)
-            {
+            if (length > snakeLength) {
                 // Modify the tail end position
                 float changeAmount = length - snakeLength;
                 vector.Normalize();
@@ -451,20 +409,17 @@ namespace snake
                 Vector2 newPosition = snakePositions[i + 1] + vector;
                 snakePositions[i + 1] = newPosition;
             }
-            if (i >= 0)
-            {
+            if (i >= 0) {
                 snakePositions.RemoveRange(0, i + 1);
             }
 
             // Check if snake intersected with itself
             LineSegment2 recentMovement = new LineSegment2(oldSnakePosition, snakePosition);
             bool hit = false;
-            if (snakePositions.Count > 1)
-            {
+            if (snakePositions.Count > 1) {
                 lastPosition = snakePositions[snakePositions.Count - 2];
                 i = snakePositions.Count - 3;
-                for (; i >= 0 && !hit; --i)
-                {
+                for (; i >= 0 && !hit; --i) {
                     Vector2 position = snakePositions[i];
                     LineSegment2 snakeSegment = new LineSegment2(position, lastPosition);
 
@@ -473,18 +428,14 @@ namespace snake
                     lastPosition = position;
                 }
             }
-            if (hit)
-            {
+            if (hit) {
                 ResetGame();
-            }
-            else
-            {
+            } else {
                 // Check if snake reached a goal
                 if (LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide) ||
                         LineSegment2.SegmentsIntersect(recentMovement, goalRightSide) ||
                         LineSegment2.SegmentsIntersect(recentMovement, goalBottomSide) ||
-                        LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide))
-                {
+                        LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide)) {
                         // intersection
                     GrowSnake();
                     RepositionGoal();
@@ -496,8 +447,7 @@ namespace snake
             base.Update(gameTime);
         }
 
-        private void Update3DSnakeData()
-        {
+        private void Update3DSnakeData() {
             // Update the snake's 3D data
             snakeVertices = new VertexPositionNormalTexture[snakePositions.Count + 1];
             snakeIndices = new int[snakePositions.Count * 2];
@@ -505,15 +455,14 @@ namespace snake
             snakeVertices[0] = SnakePositionTo3DVertex(snakePosition);
             snakeIndices[0] = 0;
 
-            for (int j = 0; j < snakePositions.Count; ++j)
-            {
+            for (int j = 0; j < snakePositions.Count; ++j) {
                 snakeVertices[j + 1] = SnakePositionTo3DVertex(snakePositions[snakePositions.Count - 1 - j]);
                 // indices go (0,1),(1,2),(2,3)...
                 snakeIndices[j * 2] = j;
                 snakeIndices[j * 2 + 1] = j + 1;
             }
             snakeVertexBuffer = new VertexBuffer(graphics.GraphicsDevice, typeof(VertexPositionNormalTexture),
-                snakeVertices.Length, BufferUsage.None);
+                    snakeVertices.Length, BufferUsage.None);
             snakeVertexBuffer.SetData<VertexPositionNormalTexture>(snakeVertices);
             snakeIndexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(int), snakeIndices.Length, BufferUsage.None);
             snakeIndexBuffer.SetData<int>(snakeIndices);
@@ -524,21 +473,17 @@ namespace snake
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        private bool IsPracticallyZero(float value)
-        {
+        private bool IsPracticallyZero(float value) {
             return (value >= -0.0001f && value <= 0.0001f);
         }
-
  
-        private VertexPositionNormalTexture SnakePositionTo3DVertex(Vector2 position)
-        {
+        private VertexPositionNormalTexture SnakePositionTo3DVertex(Vector2 position) {
             return new VertexPositionNormalTexture(Snake2DTo3DVector(position),
                     new Vector3(0, 1, 0),
                     new Vector2(0, 0));
         }
 
-        private Vector3 Snake2DTo3DVector(Vector2 position)
-        {
+        private Vector3 Snake2DTo3DVector(Vector2 position) {
             return new Vector3(position.X, 0, position.Y);
         }
 
@@ -559,8 +504,7 @@ namespace snake
         /// <param name="point1">The start point of the line</param>
         /// <param name="point2">The end point of the line</param>
         protected void DrawLine(SpriteBatch batch, Texture2D blank,
-              float width, Color color, Vector2 point1, Vector2 point2)
-        {
+                float width, Color color, Vector2 point1, Vector2 point2) {
             float angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             float length = (Vector2.Distance(point1, point2) / blank.Height);// +blank.Height;
        
@@ -573,23 +517,20 @@ namespace snake
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
-        {
+        protected override void Draw(GameTime gameTime) {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // Draw sprites
             spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
-            if (cameraType == CameraType.FromAbove)
-            {
+            if (cameraType == CameraType.FromAbove) {
                 // Draw the 2D goal
                 spriteBatch.Draw(blockTexture, new Vector2(goalPosition.X - (blockSize.X / 2), goalPosition.Y - (blockSize.Y / 2)), Color.White);
 
                 // Draw the 2D snake
                 Vector2 point1 = snakePosition;
                 Vector2 point2;
-                for (int i = snakePositions.Count - 1; i >= 0; --i)
-                {
+                for (int i = snakePositions.Count - 1; i >= 0; --i) {
                     point2 = snakePositions[i];
                     DrawLine(spriteBatch, blockTexture, 1, Color.White, point1, point2);
                     point1 = snakePositions[i];
@@ -599,8 +540,7 @@ namespace snake
 
             // Draw 3D world
             graphics.GraphicsDevice.RasterizerState = rasterizerState;
-            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-            {
+            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes) {
                 pass.Apply();
 
                 // Draw snake
