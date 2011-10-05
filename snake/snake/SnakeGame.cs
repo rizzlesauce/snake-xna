@@ -22,6 +22,14 @@ namespace snake {
         Vector2 blockSize;
         bool show2DSnake;
         const bool defaultShow2DSnake = false;
+        SpriteFont overlayFont;
+        Vector2 fontPosition;
+
+        // Game
+        bool showOverlay;
+        const bool defaultShowOverlay = true;
+        const bool defaultPaused = false;
+        bool paused = defaultPaused;
 
         // Input
         KeyboardState oldKeyboardState;
@@ -42,6 +50,8 @@ namespace snake {
         VertexBuffer snakeVertexBuffer;
         IndexBuffer snakeIndexBuffer;
         int[] snakeIndices;
+        bool ignoreCollisions;
+        const bool defaultIgnoreCollisions = false;
 
         // 3D world and camera
         Matrix worldMatrix;
@@ -253,6 +263,9 @@ namespace snake {
             }
             blockTexture.SetData<Int32>(pixels, 0, blockTexture.Width * blockTexture.Height);
 
+            overlayFont = Content.Load<SpriteFont>("OverlayFont");
+            fontPosition = new Vector2(5, 5);
+
             ResetGame();
         }
 
@@ -318,6 +331,8 @@ namespace snake {
             snakeSpeed = 100;
             fieldOfViewAngle = defaultFieldOfViewAngle;
             show2DSnake = defaultShow2DSnake;
+            showOverlay = defaultShowOverlay;
+            ignoreCollisions = defaultIgnoreCollisions;
             SetCameraType(defaultCameraType);
             Update3DSnakeData();
             RepositionGoal();
@@ -349,24 +364,29 @@ namespace snake {
 
             // Get keyboard input
             KeyboardState state = Keyboard.GetState();
-            if (state.IsKeyDown(Keys.Left)) {
-                if (snakeDirection != SnakeDirection.Right) {
-                    snakeDirection = SnakeDirection.Left;
-                }
+            if (IsKeyReleased(Keys.Space, state)) {
+                TogglePaused();
             }
-            if (state.IsKeyDown(Keys.Right)) {
-                if (snakeDirection != SnakeDirection.Left) {
-                    snakeDirection = SnakeDirection.Right;
+            if (!paused) {
+                if (state.IsKeyDown(Keys.Left)) {
+                    if (snakeDirection != SnakeDirection.Right) {
+                        snakeDirection = SnakeDirection.Left;
+                    }
                 }
-            }
-            if (state.IsKeyDown(Keys.Up)) {
-                if (snakeDirection != SnakeDirection.Down) {
-                    snakeDirection = SnakeDirection.Up;
+                if (state.IsKeyDown(Keys.Right)) {
+                    if (snakeDirection != SnakeDirection.Left) {
+                        snakeDirection = SnakeDirection.Right;
+                    }
                 }
-            }
-            if (state.IsKeyDown(Keys.Down)) {
-                if (snakeDirection != SnakeDirection.Up) {
-                    snakeDirection = SnakeDirection.Down;
+                if (state.IsKeyDown(Keys.Up)) {
+                    if (snakeDirection != SnakeDirection.Down) {
+                        snakeDirection = SnakeDirection.Up;
+                    }
+                }
+                if (state.IsKeyDown(Keys.Down)) {
+                    if (snakeDirection != SnakeDirection.Up) {
+                        snakeDirection = SnakeDirection.Down;
+                    }
                 }
             }
             if (IsKeyReleased(Keys.G, state)) {
@@ -381,10 +401,10 @@ namespace snake {
                     snakeSpeed = 0;
                 }
             }
-            if (state.IsKeyDown(Keys.OemOpenBrackets)) {
+            if (state.IsKeyDown(Keys.OemCloseBrackets)) {
                 snakeLength += 1.0f;
             }
-            if (state.IsKeyDown(Keys.OemCloseBrackets)) {
+            if (state.IsKeyDown(Keys.OemOpenBrackets)) {
                 snakeLength -= 1.0f;
                 if (snakeLength < initialSnakeLength) {
                     snakeLength = initialSnakeLength;
@@ -410,6 +430,9 @@ namespace snake {
             }
             if (state.IsKeyDown(Keys.A)) {
                 cameraDistance -= 1.0f;
+                if (cameraDistance < 0) {
+                    cameraDistance = 0;
+                }
                 UpdateViewMatrix();
             }
             if (IsKeyReleased(Keys.V, state)) {
@@ -422,100 +445,116 @@ namespace snake {
             if (IsKeyReleased(Keys.T, state)) {
                 Toggle2DSnake();
             }
+            if (IsKeyReleased(Keys.I, state)) {
+                ToggleOverlay();
+            }
+            if (IsKeyReleased(Keys.C, state)) {
+                ToggleIgnoreCollisions();
+            }
             if (state.IsKeyDown(Keys.Q) || state.IsKeyDown(Keys.Escape)) {
                 Exit();
             }
             oldKeyboardState = state;
 
-            // Check if snake switched direction
-            if (snakeDirection != oldDirection) {
-                // Add position to list of joints
-                snakePositions.Add(new Vector2(oldSnakePosition.X, oldSnakePosition.Y));
-            }
+            if (!paused) {
+                // Check if snake switched direction
+                if (snakeDirection != oldDirection) {
+                    // Add position to list of joints
+                    snakePositions.Add(new Vector2(oldSnakePosition.X, oldSnakePosition.Y));
+                }
 
-            // Move the snake
-            float displacement = (float)gameTime.ElapsedGameTime.TotalSeconds * snakeSpeed;
-            switch (snakeDirection) {
-                case SnakeDirection.Up:
-                    snakePosition.Y -= displacement;
-                    break;
-                case SnakeDirection.Down:
-                    snakePosition.Y += displacement;
-                    break;
-                case SnakeDirection.Left:
-                    snakePosition.X -= displacement;
-                    break;
-                case SnakeDirection.Right:
-                    snakePosition.X += displacement;
-                    break;
-            }
+                // Move the snake
+                float displacement = (float)gameTime.ElapsedGameTime.TotalSeconds * snakeSpeed;
+                switch (snakeDirection) {
+                    case SnakeDirection.Up:
+                        snakePosition.Y -= displacement;
+                        break;
+                    case SnakeDirection.Down:
+                        snakePosition.Y += displacement;
+                        break;
+                    case SnakeDirection.Left:
+                        snakePosition.X -= displacement;
+                        break;
+                    case SnakeDirection.Right:
+                        snakePosition.X += displacement;
+                        break;
+                }
 
-            // Trim the snake tail, making sure the length of the snake is correct.
-            // Go backwards from current point through each point, adding up the displacement.
-            // Stop when you reach the right length, removing history of non relevant points.
-            float length = 0;
-            Vector2 lastPosition = snakePosition;
-            int i = snakePositions.Count - 1;
-            Vector2 vector = new Vector2();
-            for (; i >= 0 && length <= snakeLength; --i) {
-                Vector2 position = snakePositions[i];
-                vector = lastPosition - position;
-                length += vector.Length();
-
-                lastPosition = position;
-            }
-            if (length > snakeLength) {
-                // Modify the tail end position
-                float changeAmount = length - snakeLength;
-                vector.Normalize();
-                vector = vector * changeAmount;
-                Vector2 newPosition = snakePositions[i + 1] + vector;
-                snakePositions[i + 1] = newPosition;
-            }
-            if (i >= 0) {
-                snakePositions.RemoveRange(0, i + 1);
-            }
-
-            // Check if snake intersected with itself
-            LineSegment2 recentMovement = new LineSegment2(oldSnakePosition, snakePosition);
-            bool hit = false;
-            if (snakePositions.Count > 1) {
-                lastPosition = snakePositions[snakePositions.Count - 2];
-                i = snakePositions.Count - 3;
-                for (; i >= 0 && !hit; --i) {
+                // Trim the snake tail, making sure the length of the snake is correct.
+                // Go backwards from current point through each point, adding up the displacement.
+                // Stop when you reach the right length, removing history of non relevant points.
+                float length = 0;
+                Vector2 lastPosition = snakePosition;
+                int i = snakePositions.Count - 1;
+                Vector2 vector = new Vector2();
+                for (; i >= 0 && length <= snakeLength; --i) {
                     Vector2 position = snakePositions[i];
-                    LineSegment2 snakeSegment = new LineSegment2(position, lastPosition);
-
-                    hit = LineSegment2.SegmentsIntersect(recentMovement, snakeSegment);
+                    vector = lastPosition - position;
+                    length += vector.Length();
 
                     lastPosition = position;
                 }
-            }
-            if (hit) {
-                ResetGame();
-            } else {
-                // Check if snake reached a goal
-                if (LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide) ||
-                        LineSegment2.SegmentsIntersect(recentMovement, goalRightSide) ||
-                        LineSegment2.SegmentsIntersect(recentMovement, goalBottomSide) ||
-                        LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide)) {
-                        // intersection
-                    GrowSnake();
-                    RepositionGoal();
+                if (length > snakeLength) {
+                    // Modify the tail end position
+                    float changeAmount = length - snakeLength;
+                    vector.Normalize();
+                    vector = vector * changeAmount;
+                    Vector2 newPosition = snakePositions[i + 1] + vector;
+                    snakePositions[i + 1] = newPosition;
+                }
+                if (i >= 0) {
+                    snakePositions.RemoveRange(0, i + 1);
                 }
 
-                Update3DSnakeData();
+                // Check if snake intersected with itself
+                LineSegment2 recentMovement = new LineSegment2(oldSnakePosition, snakePosition);
+                bool hit = false;
+                if (snakePositions.Count > 1) {
+                    lastPosition = snakePositions[snakePositions.Count - 2];
+                    i = snakePositions.Count - 3;
+                    for (; i >= 0 && !hit; --i) {
+                        Vector2 position = snakePositions[i];
+                        LineSegment2 snakeSegment = new LineSegment2(position, lastPosition);
+
+                        hit = LineSegment2.SegmentsIntersect(recentMovement, snakeSegment);
+
+                        lastPosition = position;
+                    }
+                }
+                if (hit && !ignoreCollisions) {
+                    ResetGame();
+                } else {
+                    // Check if snake reached a goal
+                    if (LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide) ||
+                            LineSegment2.SegmentsIntersect(recentMovement, goalRightSide) ||
+                            LineSegment2.SegmentsIntersect(recentMovement, goalBottomSide) ||
+                            LineSegment2.SegmentsIntersect(recentMovement, goalLeftSide)) {
+                        // intersection
+                        GrowSnake();
+                        RepositionGoal();
+                    }
+
+                    Update3DSnakeData();
+                }
             }
             
             base.Update(gameTime);
         }
 
         private void Toggle2DSnake() {
-            if (show2DSnake) {
-                show2DSnake = false;
-            } else {
-                show2DSnake = true;
-            }
+            show2DSnake = !show2DSnake;
+        }
+
+        private void ToggleOverlay() {
+            showOverlay = !showOverlay;
+        }
+
+        private void ToggleIgnoreCollisions() {
+            ignoreCollisions = !ignoreCollisions;
+        }
+
+        private void TogglePaused() {
+            paused = !paused;
         }
 
         private void Update3DSnakeData() {
@@ -584,6 +623,10 @@ namespace snake {
                        SpriteEffects.None, 0);
         }
 
+        private string CreateToggleStatement(string description, string key, bool value) {
+            return description + "(\"" + key + "\"):" + (value ? "Yes" : "No");
+        }
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -593,6 +636,30 @@ namespace snake {
 
             // Draw sprites
             spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+
+            if (showOverlay) {
+                // Draw The Overlay
+                string output = "";
+                output += CreateToggleStatement("Show Info", "I", showOverlay) + "\n";
+                output += CreateToggleStatement("Show 2D Snake", "T", show2DSnake) + "\n";
+                output += CreateToggleStatement("Ignore Collisions", "C", ignoreCollisions) + "\n";
+                output += CreateToggleStatement("Paused", "<SPACE>", paused) + "\n";
+                output += "Snake Speed(\"+\"/\"-\"):" + snakeSpeed + "px/sec\n";
+                output += "Grow Snake (\"G\")\n";
+                output += "View Type(\"V\"):" + (cameraType == CameraType.FromAbove ? "FromAbove" : "Angled") + "\n";
+                output += "Camera Pitch(\"W\"/\"S\"):" + cameraPitch + "deg\n";
+                output += "Camera Distance(\"A\"/\"D\"):" + (int)cameraDistance + "\n";
+                output += "Snake Length(\"[\"/\"]\"):" + snakeLength + "\n";
+
+                // Find the center of the string
+                Vector2 textSize = overlayFont.MeasureString(output);
+                //Vector2 fontOrigin = textSize / 2;
+                //Vector2 fontPosition = new Vector2(graphics.GraphicsDevice.Viewport.Width - 10 - textSize.X,
+                //10);
+                // Draw the string
+                spriteBatch.DrawString(overlayFont, output, fontPosition, Color.Purple,
+                        0, Vector2.Zero, 1.0f, SpriteEffects.None, 0.5f);
+            }
 
             if (show2DSnake) {
                 // Draw the 2D goal
