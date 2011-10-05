@@ -170,7 +170,8 @@ namespace snake {
                     doIntersect = true;
                     intersectPoint = segment1.point1;
                 }
-            } else if (segmentRelationship == SegmentRelationship.Verticals || segmentRelationship == SegmentRelationship.Horizontals) {
+            } else if (segmentRelationship == SegmentRelationship.Verticals || 
+                    segmentRelationship == SegmentRelationship.Horizontals) {
                 // no intersection
             } else if (segmentRelationship == SegmentRelationship.VerticalHorizontal) {
                 LineSegment2 vertical = segments[verticalSegmentIndices[0]];
@@ -266,7 +267,8 @@ namespace snake {
         /// <param name="n">The value of x</param>
         /// <returns></returns>
         public static float YAtXEqualsNInLine(LineSegment2 line, float n) {
-            return ((line.point2.Y - line.point1.Y) / (line.point2.X - line.point1.X)) * (n - line.point1.X) + line.point1.Y;
+            return ((line.point2.Y - line.point1.Y) / (line.point2.X - line.point1.X)) *
+                    (n - line.point1.X) + line.point1.Y;
         }
 
         /// <summary>
@@ -277,7 +279,8 @@ namespace snake {
         /// <param name="n">The value of y</param>
         /// <returns></returns>
         public static float XAtYEqualsNInLine(LineSegment2 line, float n) {
-            return ((line.point2.X - line.point1.X) / (line.point2.Y - line.point1.Y)) * (n - line.point1.Y) + line.point1.X;
+            return ((line.point2.X - line.point1.X) / (line.point2.Y - line.point1.Y)) *
+                    (n - line.point1.Y) + line.point1.X;
         }
 
         /// <summary>

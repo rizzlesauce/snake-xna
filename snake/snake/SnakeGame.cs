@@ -89,7 +89,6 @@ namespace snake {
             blockSize = new Vector2(6, 6);
             snakePositions = new List<Vector2>();
             goalPosition = new Vector2();
-            cameraType = defaultCameraType;
             fieldOfViewAngle = defaultFieldOfViewAngle;
 
             Content.RootDirectory = "Content";
@@ -112,13 +111,14 @@ namespace snake {
             nearPlaneDistance = 1.0f;
             farPlaneDistance = MeterToWorldUnit(50.0f);
 
-            SetCameraType(cameraType);
+            SetCameraType(defaultCameraType);
 
             worldMatrix = Matrix.Identity;
 
             projectionMatrix = Matrix.CreatePerspectiveFieldOfView(
                     MathHelper.ToRadians(fieldOfViewAngle),
-                    (float)GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height, nearPlaneDistance, farPlaneDistance);
+                    (float)GraphicsDevice.Viewport.Width / (float)GraphicsDevice.Viewport.Height, nearPlaneDistance,
+                    farPlaneDistance);
 
             basicEffect.World = worldMatrix;
             basicEffect.Projection = projectionMatrix;
@@ -164,11 +164,13 @@ namespace snake {
             cameraType = type;
             if (cameraType == CameraType.FromAbove) {
                 // Create a camera position centered above the floor looking down
-                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f));
+                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / 
+                        (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f));
                 cameraPitch = 90.0f;
             } else {
                 // Create a camera positioned above and in front of the floor, looking at the center of the floor
-                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f)) * 2.0f;
+                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / 
+                        (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f)) * 2.0f;
                 cameraPitch = 45.0f;
             }
             UpdateViewMatrix();
@@ -222,19 +224,20 @@ namespace snake {
             // Set up the arena
             arenaVertices = new VertexPositionNormalTexture[4];
             arenaVertices[0] = new VertexPositionNormalTexture(new Vector3(0, 0, graphics.GraphicsDevice.Viewport.Height),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             arenaVertices[1] = new VertexPositionNormalTexture(new Vector3(0, 0, 0),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             arenaVertices[2] = new VertexPositionNormalTexture(new Vector3(graphics.GraphicsDevice.Viewport.Width, 0, 0),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
-            arenaVertices[3] = new VertexPositionNormalTexture(new Vector3(graphics.GraphicsDevice.Viewport.Width, 0, graphics.GraphicsDevice.Viewport.Height),
-                new Vector3(0, 1, 0),
-                new Vector2(0, 0));
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
+            arenaVertices[3] = new VertexPositionNormalTexture(new Vector3(graphics.GraphicsDevice.Viewport.Width, 0,
+                    graphics.GraphicsDevice.Viewport.Height),
+                    new Vector3(0, 1, 0),
+                    new Vector2(0, 0));
             arenaVertexBuffer = new VertexBuffer(graphics.GraphicsDevice, typeof(VertexPositionNormalTexture),
-                arenaVertices.Length, BufferUsage.None);
+                    arenaVertices.Length, BufferUsage.None);
             arenaVertexBuffer.SetData<VertexPositionNormalTexture>(arenaVertices);
             arenaIndexBuffer = new IndexBuffer(graphics.GraphicsDevice, typeof(int), arenaIndices.Length, BufferUsage.None);
             arenaIndexBuffer.SetData<int>(arenaIndices);
@@ -593,7 +596,8 @@ namespace snake {
 
             if (show2DSnake) {
                 // Draw the 2D goal
-                spriteBatch.Draw(blockTexture, new Vector2(goalPosition.X - (blockSize.X / 2), goalPosition.Y - (blockSize.Y / 2)), Color.White);
+                spriteBatch.Draw(blockTexture, new Vector2(goalPosition.X - (blockSize.X / 2),
+                        goalPosition.Y - (blockSize.Y / 2)), Color.White);
 
                 // Draw the 2D snake
                 Vector2 point1 = snakePosition;
