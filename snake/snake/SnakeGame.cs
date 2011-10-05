@@ -20,6 +20,11 @@ namespace snake {
         SpriteBatch spriteBatch;
         Texture2D blockTexture;
         Vector2 blockSize;
+        bool show2DSnake;
+        const bool defaultShow2DSnake = false;
+
+        // Input
+        KeyboardState oldKeyboardState;
 
         // Snake data
         Vector2 snakePosition;
@@ -54,6 +59,8 @@ namespace snake {
         enum CameraType { Angled, FromAbove };
         const CameraType defaultCameraType = CameraType.FromAbove;
         CameraType cameraType;
+        float cameraPitch;
+        float cameraDistance;
 
         // Playing arena data
         VertexPositionNormalTexture[] arenaVertices;
@@ -105,7 +112,7 @@ namespace snake {
             nearPlaneDistance = 1.0f;
             farPlaneDistance = MeterToWorldUnit(50.0f);
 
-            UpdateViewMatrix(cameraType);
+            SetCameraType(cameraType);
 
             worldMatrix = Matrix.Identity;
 
@@ -153,22 +160,38 @@ namespace snake {
             base.Initialize();
         }
 
-        private void UpdateViewMatrix(CameraType type) {
+        private void SetCameraType(CameraType type) {
             cameraType = type;
-            // Set the camera height so that viewport pixel units will look the same as 3D world units
-            float cameraHeight = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f));
-
-            if (type == CameraType.FromAbove) {
+            if (cameraType == CameraType.FromAbove) {
                 // Create a camera position centered above the floor looking down
-                cameraPosition = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, cameraHeight, graphics.GraphicsDevice.Viewport.Height / 2.0f);
-                cameraTarget = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, 0, graphics.GraphicsDevice.Viewport.Height / 2.0f);
-                cameraUpVector = new Vector3(0, 0, -1);
+                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f));
+                cameraPitch = 90.0f;
             } else {
                 // Create a camera positioned above and in front of the floor, looking at the center of the floor
-                cameraPosition = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, cameraHeight / 2.0f, graphics.GraphicsDevice.Viewport.Height + (cameraHeight / 1.0f));
-                cameraTarget = new Vector3(graphics.GraphicsDevice.Viewport.Width / 2.0f, 0, graphics.GraphicsDevice.Viewport.Height / 2.0f);
-                cameraUpVector = new Vector3(0, 1, 0);
+                cameraDistance = (graphics.GraphicsDevice.Viewport.Height / 2.0f) / (float)Math.Tan(MathHelper.ToRadians(fieldOfViewAngle / 2.0f)) * 2.0f;
+                cameraPitch = 45.0f;
             }
+            UpdateViewMatrix();
+        }
+
+        private void UpdateViewMatrix() {
+            float arenaCenterX = graphics.GraphicsDevice.Viewport.Width / 2.0f;
+            float arenaCenterZ = graphics.GraphicsDevice.Viewport.Height / 2.0f;
+
+            Vector3 cameraDown = new Vector3(0, 0, cameraDistance);
+            Quaternion cameraRotation = Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(-cameraPitch), 0);
+            cameraPosition = Vector3.Transform(cameraDown, cameraRotation);
+            cameraPosition = new Vector3(arenaCenterX, cameraPosition.Y, arenaCenterZ + cameraPosition.Z);
+
+            cameraTarget = new Vector3(arenaCenterX, 0, arenaCenterZ);
+            
+            // Create the camera up vector
+            Vector3 lookVector = cameraPosition - cameraTarget;
+            lookVector.Normalize();
+            // Get the vector rotated 90 degrees around the x axis
+            Quaternion rotation = Quaternion.CreateFromYawPitchRoll(0, MathHelper.ToRadians(-90.0f), 0);
+            cameraUpVector = Vector3.Normalize(Vector3.Transform(lookVector, rotation));
+
             viewMatrix = Matrix.CreateLookAt(cameraPosition, cameraTarget, cameraUpVector);
             basicEffect.View = viewMatrix;
         }
@@ -291,9 +314,20 @@ namespace snake {
             snakeGrowLength = 30;
             snakeSpeed = 100;
             fieldOfViewAngle = defaultFieldOfViewAngle;
-            UpdateViewMatrix(defaultCameraType);
+            show2DSnake = defaultShow2DSnake;
+            SetCameraType(defaultCameraType);
             Update3DSnakeData();
             RepositionGoal();
+        }
+
+        /// <summary>
+        /// Determine whether a key was just pressed.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        private bool IsKeyReleased(Keys key, KeyboardState state) {
+            return oldKeyboardState.IsKeyDown(key) && state.IsKeyUp(key);
         }
 
         /// <summary>
@@ -332,7 +366,7 @@ namespace snake {
                     snakeDirection = SnakeDirection.Down;
                 }
             }
-            if (state.IsKeyDown(Keys.G)) {
+            if (IsKeyReleased(Keys.G, state)) {
                 GrowSnake();
             }
             if (state.IsKeyDown(Keys.OemPlus)) {
@@ -353,16 +387,42 @@ namespace snake {
                     snakeLength = initialSnakeLength;
                 }
             }
-            if (state.IsKeyDown(Keys.V)) {
-                if (cameraType == CameraType.FromAbove) {
-                    UpdateViewMatrix(CameraType.Angled);
-                } else {
-                    UpdateViewMatrix(CameraType.FromAbove);
+            if (state.IsKeyDown(Keys.W)) {
+                cameraPitch += 1.0f;
+                if (cameraPitch > 360.0f) {
+                    cameraPitch -= 360.0f;
                 }
+                UpdateViewMatrix();
+            }
+            if (state.IsKeyDown(Keys.S)) {
+                cameraPitch -= 1.0f;
+                if (cameraPitch < 0) {
+                    cameraPitch += 360.0f;
+                }
+                UpdateViewMatrix();
+            }
+            if (state.IsKeyDown(Keys.D)) {
+                cameraDistance += 1.0f;
+                UpdateViewMatrix();
+            }
+            if (state.IsKeyDown(Keys.A)) {
+                cameraDistance -= 1.0f;
+                UpdateViewMatrix();
+            }
+            if (IsKeyReleased(Keys.V, state)) {
+                if (cameraType == CameraType.FromAbove) {
+                    SetCameraType(CameraType.Angled);
+                } else {
+                    SetCameraType(CameraType.FromAbove);
+                }
+            }
+            if (IsKeyReleased(Keys.T, state)) {
+                Toggle2DSnake();
             }
             if (state.IsKeyDown(Keys.Q) || state.IsKeyDown(Keys.Escape)) {
                 Exit();
             }
+            oldKeyboardState = state;
 
             // Check if snake switched direction
             if (snakeDirection != oldDirection) {
@@ -447,6 +507,14 @@ namespace snake {
             base.Update(gameTime);
         }
 
+        private void Toggle2DSnake() {
+            if (show2DSnake) {
+                show2DSnake = false;
+            } else {
+                show2DSnake = true;
+            }
+        }
+
         private void Update3DSnakeData() {
             // Update the snake's 3D data
             snakeVertices = new VertexPositionNormalTexture[snakePositions.Count + 1];
@@ -523,7 +591,7 @@ namespace snake {
             // Draw sprites
             spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
-            if (cameraType == CameraType.FromAbove) {
+            if (show2DSnake) {
                 // Draw the 2D goal
                 spriteBatch.Draw(blockTexture, new Vector2(goalPosition.X - (blockSize.X / 2), goalPosition.Y - (blockSize.Y / 2)), Color.White);
 
