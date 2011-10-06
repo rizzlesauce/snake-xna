@@ -48,6 +48,10 @@ namespace snake {
         float snakeGrowLength;
         const float defaultSnakeGrowLength = 30.0f;
         List<Vector2> snakePositions;
+        /// <summary>
+        /// Keeps track of disconnected points on the snake path.
+        /// These points occur when the snake wraps around the arena boundary.
+        /// </summary>
         List<bool> disconnectedToPreviousPoint;
         VertexPositionNormalTexture[] snakeVertices;
         VertexBuffer snakeVertexBuffer;
@@ -634,6 +638,11 @@ namespace snake {
             paused = !paused;
         }
 
+        /// <summary>
+        /// Get the number of points in the snake that are disconnected from
+        /// their previous point by a boundary.
+        /// </summary>
+        /// <returns></returns>
         private int CountDisconnectedPoints() {
             int count = 0;
             for (int i = 0; i < disconnectedToPreviousPoint.Count; ++i) {
