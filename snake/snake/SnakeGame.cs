@@ -342,13 +342,13 @@ namespace snake {
         /// Make a small snake and set a goal position.
         /// </summary>
         private void InitializeSnake() {
-            snakePosition = new Vector2(200, 200);
+            snakePosition = new Vector2(200.0f, 200.0f);
             snakeDirection = SnakeDirection.Right;
+            snakeLength = initialSnakeLength;
             snakePositions.Clear();
             disconnectedToPreviousPoint.Clear();
             snakePositions.Add(new Vector2(snakePosition.X - snakeLength, snakePosition.Y));
             disconnectedToPreviousPoint.Add(false);
-            snakeLength = initialSnakeLength;
             paused = false;
             Update3DSnakeData();
             RepositionGoal();
@@ -377,6 +377,7 @@ namespace snake {
 
             SnakeDirection oldDirection = snakeDirection;
             Vector2 oldSnakePosition = snakePosition;
+            bool justInitialized = false;
 
             // Get keyboard input
             KeyboardState state = Keyboard.GetState();
@@ -385,8 +386,9 @@ namespace snake {
             }
             if (IsKeyReleased(Keys.R, state)) {
                 InitializeSnake();
+                justInitialized = true;
             }
-            if (!paused) {
+            if (!paused && !justInitialized) {
                 if (state.IsKeyDown(Keys.Left)) {
                     if (snakeDirection != SnakeDirection.Right) {
                         snakeDirection = SnakeDirection.Left;
@@ -484,7 +486,7 @@ namespace snake {
             }
             oldKeyboardState = state;
 
-            if (!paused) {
+            if (!paused && !justInitialized) {
                 // Check if snake switched direction
                 if (snakeDirection != oldDirection) {
                     // Add position to list of joints
@@ -758,6 +760,7 @@ namespace snake {
                 output += "Camera Distance(\"A\"/\"D\"):" + (int)cameraDistance + "\n";
                 output += "Snake Length(\"[\"/\"]\"):" + snakeLength + "\n";
                 output += "Snake Position(" + (int)snakePosition.X + "," + (int)snakePosition.Y + ")" + "\n";
+                output += "Goal Position(" + (int)goalPosition.X + "," + (int)goalPosition.Y + ")" + "\n";
                 output += "Snake Direction:" + snakeDirection + "\n";
                 output += "Reset Snake(\"R\")";
 
